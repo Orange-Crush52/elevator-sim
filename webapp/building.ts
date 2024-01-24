@@ -6,7 +6,7 @@ class Building {
         this.settings = settings;
         this.cars = cars;
     }
-
+    // Dont need to mess with this 
     drawFloors(p) {
         p.noStroke();
         p.fill(0, 0, 100, 20);

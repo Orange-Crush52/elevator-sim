@@ -34,6 +34,7 @@ class Dispatcher {
             const request = this.carCallQueue.shift();
 
             if (request) {
+                // just uses closest non busy elevator (Standard Elevator Algorithm)
                 const floorY = this.p.yFromFloor(request.floor);
                 const activeCars = this.activeCars();
                 const idleCars = activeCars.filter(car => car.state === CarState.Idle && car.goingUp === request.goingUp);
