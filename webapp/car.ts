@@ -203,7 +203,7 @@ class Car {
             this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
             this.state = CarState.Moving;
             this.sound.osc.amp(p.map(this.settings.volume, 0, 10, 0, 0.6), 0.02);
-            console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}`);
+            console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
             this.lastMoveTime = p.millis() / 1000;
             this.speed = 0;
             this.maxMaxSpeed = 1000;
@@ -279,7 +279,7 @@ class Car {
             if (!this.destFloors.find(f => f === floor)) {
                 this.destFloors.push(floor);
                 this.sortDestinations();
-                console.log(`Car ${this.carNumber} will go to ${floor}`);
+                console.log(`Car ${this.carNumber} will be going gog ogo go to ${floor}`);
             }
         }
     }

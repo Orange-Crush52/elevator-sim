@@ -43,7 +43,7 @@ class Controls {
         projection.changed(() => settings.projectionType = projection.elt.selectedIndex);
 
         const controlMode = p.createSelect();
-        ['Auto', 'Manual'].forEach(p => controlMode.option(p));
+        ['Auto', 'Manual', 'Smart'].forEach(p => controlMode.option(p));
         controlMode.parent('#controlModeParent');
         controlMode.changed(() => settings.controlMode = controlMode.elt.selectedIndex);
 

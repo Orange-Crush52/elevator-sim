@@ -205,7 +205,7 @@ class Car {
             this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
             this.state = CarState.Moving;
             this.sound.osc.amp(p.map(this.settings.volume, 0, 10, 0, 0.6), 0.02);
-            console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}`);
+            console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!`);
             this.lastMoveTime = p.millis() / 1000;
             this.speed = 0;
             this.maxMaxSpeed = 1000;
@@ -314,7 +314,7 @@ class Controls {
         projection.parent('#projectionParent');
         projection.changed(() => settings.projectionType = projection.elt.selectedIndex);
         const controlMode = p.createSelect();
-        ['Auto', 'Manual'].forEach(p => controlMode.option(p));
+        ['Auto', 'Manual', 'Smart'].forEach(p => controlMode.option(p));
         controlMode.parent('#controlModeParent');
         controlMode.changed(() => settings.controlMode = controlMode.elt.selectedIndex);
         const view = p.createSelect();
@@ -335,12 +335,12 @@ class Controls {
 }
 /** Manages riders, and calls elevators for them. */
 class Dispatcher {
-    constructor(p, settings, cars, stats, talker) {
+    constructor(p, settings, cars, stats/*, talker*/) {
         this.p = p;
         this.settings = settings;
         this.cars = cars;
         this.stats = stats;
-        this.talker = talker;
+        /*this.talker = talker;*/
         this.carCallQueue = [];
         this.riders = [];
     }
@@ -354,6 +354,7 @@ class Dispatcher {
         if (this.settings.controlMode === 0 /* Auto */) {
             const request = this.carCallQueue.shift();
             if (request) {
+                // Heres Where the elevator algorithms go mess around with control mode
                 const floorY = this.p.yFromFloor(request.floor);
                 const activeCars = this.activeCars();
                 const idleCars = activeCars.filter(car => car.state === CarState.Idle && car.goingUp === request.goingUp);
@@ -370,6 +371,12 @@ class Dispatcher {
                     else
                         this.carCallQueue.push(request);
                 }
+            }
+        }
+        if (this.settings.controlMode === 2) {
+            const request = this.carCallQueue.shift();
+            if (request) {
+                console.log("here")
             }
         }
     }
@@ -415,7 +422,7 @@ class Dispatcher {
             while (start === end) {
                 end = randomFloor();
             }
-            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats, this.talker));
+            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats/*, this.talker*/));
         }
     }
 }
@@ -430,14 +437,14 @@ var RiderState;
     RiderState[RiderState["Exited"] = 5] = "Exited";
 })(RiderState || (RiderState = {}));
 class Rider {
-    constructor(p, settings, startFloor, destFloor, dispatcher, stats, talker) {
+    constructor(p, settings, startFloor, destFloor, dispatcher, stats/*, talker*/) {
         this.p = p;
         this.settings = settings;
         this.startFloor = startFloor;
         this.destFloor = destFloor;
         this.dispatcher = dispatcher;
         this.stats = stats;
-        this.talker = talker;
+        /*this.talker = talker;*/
         this.state = RiderState.Arriving;
         this.arrivalTime = p.millis() / 1000;
         this.carGeom = settings.geom.car;
@@ -474,7 +481,7 @@ class Rider {
         switch (this.state) {
             case RiderState.Arriving:
                 this.followPath(this.arrivingPath, RiderState.Waiting, () => {
-                    this.talker.speakRandom('arriving', undefined, 0.1);
+                    /*this.talker.speakRandom('arriving', undefined, 0.1);*/
                     this.requestCar();
                 });
                 break;
@@ -488,7 +495,7 @@ class Rider {
                     this.stats.riders.ridingKg += this.weight;
                 }, () => this.carIn.state === CarState.Open);
                 if (canceled) {
-                    this.talker.speakRandom('tooLate', undefined, 1);
+                    /*this.talker.speakRandom('tooLate', undefined, 1);*/
                     this.carIn.removeRider(this);
                     this.carIn = undefined;
                     this.requestCar();
@@ -529,7 +536,8 @@ class Rider {
             this.state = RiderState.Boarding;
         }
         else if (suitableExceptFullEncountered)
-            this.talker.speakRandom('carFull', undefined, 0.3);
+            console.log("full")
+            /*this.talker.speakRandom('carFull', undefined, 0.3);*/
     }
     outsideDoorPos(openCar) {
         return this.p.createVector(openCar.carCenterX() + this.fuzz(2), this.pos.y, openCar.settings.geom.carCenterZ + this.carGeom.z + this.fuzz(2));
@@ -544,7 +552,7 @@ class Rider {
             --this.stats.riders.riding;
             this.stats.riders.ridingKg -= this.weight;
             ++this.stats.riders.served;
-            this.talker.speakRandom('leaving', undefined, 0.1);
+            /*this.talker.speakRandom('leaving', undefined, 0.1);*/
             this.state = RiderState.Exiting;
         }
     }
@@ -662,7 +670,7 @@ new p5(p => {
     let building;
     let stats;
     let dispatcher;
-    let talker;
+    /*let talker;*/
     let ready = false;
     p.preload = function () {
         p.dingSound = p.loadSound('assets/ding.wav');
@@ -674,14 +682,15 @@ new p5(p => {
         settings.numFloors = Math.floor(p.height / settings.geom.storyHeight);
         stats = new Stats();
         controls = new Controls(p, settings, stats);
+        // TRY to make it controls.whenLoaded !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         talker = new Talker(settings);
         talker.whenLoaded(() => {
             cars = Array.from(Array(settings.numCars).keys(), n => new Car(p, settings, stats, n + 1));
             building = new Building(settings, cars);
-            dispatcher = new Dispatcher(p, settings, cars, stats, talker);
+            dispatcher = new Dispatcher(p, settings, cars, stats/*, talker*/);
             controls.createKnobs(passengerLoadTypes);
             controls.activeCarsChange = () => dispatcher.updateCarActiveStatuses();
-            controls.volumeChange = v => talker.volume(v);
+            /*controls.volumeChange = v => talker.volume(v);*/
             ready = true;
         });
     };
@@ -847,69 +856,69 @@ class Stats {
         this.costs.operating += this.costs.perSecPerCar * secs * numActiveCars;
     }
 }
-class Talker {
-    constructor(settings) {
-        this.speech = speechSynthesis;
-        this.utterances = {
-            arriving: [
-                'i would like a ride',
-                'nice day for an elevator ride',
-                'i hope this is fast',
-                "i'm in a hurry",
-                "let's get this over with",
-                'how about those astros',
-                'i love elevators',
-                'is this real life?'
-            ],
-            leaving: ['thank you, elevator', 'thanks', 'bye', 'so long', 'good times', 'far out', 'namaste'],
-            tooLate: ['darn it!', 'stupid elevator', 'oh, i missed it', 'i ran as fast as i could', 'bummer'],
-            carFull: ['that\'s a full car', 'a lot of people', 'too crowded', 'wow, full', 'full'],
-        };
-        this.settings = settings;
-        this.nextSpeechAllowedTime = new Date().getTime();
-    }
-    whenLoaded(loaded = () => { }) {
-        const talker = this;
-        function populateVoiceList() {
-            if (typeof speechSynthesis === 'undefined' || talker.voices !== undefined) {
-                return;
-            }
-            const unwantedVoices = new Set('Alex Daniel Fred Jorge Victoria Zosia'.split(' '));
-            const allVoices = speechSynthesis.getVoices();
-            if (allVoices.length) {
-                talker.voices = talker.speech.getVoices().filter(v => !unwantedVoices.has(v.name));
-                talker.englishVoices = talker.voices.filter(v => v.lang.startsWith('en'));
-                loaded();
-            }
-        }
-        populateVoiceList();
-        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
-    }
-    speakRandom(category, voiceName, probability) {
-        if (Math.random() <= probability) {
-            this.speak(this.randChoice(this.utterances[category]), voiceName);
-        }
-    }
-    speak(message, voiceName) {
-        if (new Date().getTime() > this.nextSpeechAllowedTime && this.voices.length && !this.speech.speaking && this.settings.speakersType > 0) {
-            const utterance = new SpeechSynthesisUtterance();
-            utterance.volume = this.settings.volume / 10;
-            utterance.voice = voiceName ?
-                this.voice(voiceName) :
-                this.randChoice(this.settings.speakersType === 1 ? this.voices : this.englishVoices);
-            console.log(utterance.voice);
-            utterance.text = message;
-            this.speech.speak(utterance);
-            this.nextSpeechAllowedTime = new Date().getTime() + 5000;
-        }
-    }
-    voice(voiceName) {
-        return this.voices.find(v => v.name === voiceName);
-    }
-    randChoice(sequence) {
-        return sequence[Math.floor(Math.random() * sequence.length)];
-    }
-}
+// class Talker {
+//     constructor(settings) {
+//         this.speech = speechSynthesis;
+//         this.utterances = {
+//             arriving: [
+//                 'i would like a ride',
+//                 'nice day for an elevator ride',
+//                 'i hope this is fast',
+//                 "i'm in a hurry",
+//                 "let's get this over with",
+//                 'how about those astros',
+//                 'i love elevators',
+//                 'is this real life?'
+//             ],
+//             leaving: ['thank you, elevator', 'thanks', 'bye', 'so long', 'good times', 'far out', 'namaste'],
+//             tooLate: ['darn it!', 'stupid elevator', 'oh, i missed it', 'i ran as fast as i could', 'bummer'],
+//             carFull: ['that\'s a full car', 'a lot of people', 'too crowded', 'wow, full', 'full'],
+//         };
+//         this.settings = settings;
+//         this.nextSpeechAllowedTime = new Date().getTime();
+//     }
+//     whenLoaded(loaded = () => { }) {
+//         const talker = this;
+//         function populateVoiceList() {
+//             if (typeof speechSynthesis === 'undefined' || talker.voices !== undefined) {
+//                 return;
+//             }
+//             const unwantedVoices = new Set('Alex Daniel Fred Jorge Victoria Zosia'.split(' '));
+//             const allVoices = speechSynthesis.getVoices();
+//             if (allVoices.length) {
+//                 talker.voices = talker.speech.getVoices().filter(v => !unwantedVoices.has(v.name));
+//                 talker.englishVoices = talker.voices.filter(v => v.lang.startsWith('en'));
+//                 loaded();
+//             }
+//         }
+//         populateVoiceList();
+//         if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+//             speechSynthesis.onvoiceschanged = populateVoiceList;
+//         }
+//     }
+//     speakRandom(category, voiceName, probability) {
+//         if (Math.random() <= probability) {
+//             this.speak(this.randChoice(this.utterances[category]), voiceName);
+//         }
+//     }
+//     speak(message, voiceName) {
+//         if (new Date().getTime() > this.nextSpeechAllowedTime && this.voices.length && !this.speech.speaking && this.settings.speakersType > 0) {
+//             const utterance = new SpeechSynthesisUtterance();
+//             utterance.volume = this.settings.volume / 10;
+//             utterance.voice = voiceName ?
+//                 this.voice(voiceName) :
+//                 this.randChoice(this.settings.speakersType === 1 ? this.voices : this.englishVoices);
+//             console.log(utterance.voice);
+//             utterance.text = message;
+//             this.speech.speak(utterance);
+//             this.nextSpeechAllowedTime = new Date().getTime() + 5000;
+//         }
+//     }
+//     voice(voiceName) {
+//         return this.voices.find(v => v.name === voiceName);
+//     }
+//     randChoice(sequence) {
+//         return sequence[Math.floor(Math.random() * sequence.length)];
+//     }
+// }
 //# sourceMappingURL=app.js.map
