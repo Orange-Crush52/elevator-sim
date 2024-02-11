@@ -13,7 +13,6 @@ class Car {
     private destFloors: any[];
     private riders: any[];
     private readonly pan: number;
-    private sound: MotorSound;
     private readonly active: boolean;
     private state: CarState;
     private openSince: number;
@@ -48,7 +47,6 @@ class Car {
         this.destFloors = [];
         this.riders = [];
         this.pan = settings.numCars === 1 ? 0 : p.map(carNumber, 1, settings.numCars, -0.8, 0.8);
-        this.sound = new MotorSound(this.pan);
         this.active = false;
         this.state = CarState.Idle;
     }
@@ -202,7 +200,6 @@ class Car {
             }
             this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
             this.state = CarState.Moving;
-            this.sound.osc.amp(p.map(this.settings.volume, 0, 10, 0, 0.6), 0.02);
             console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
             this.lastMoveTime = p.millis() / 1000;
             this.speed = 0;
@@ -228,7 +225,6 @@ class Car {
         } else if (this.decelerating()) {
             this.speed = Math.sqrt(2 * this.accel * absTravelLeft);
         }
-        this.sound.osc.freq(p.map(this.speed, 0, this.maxMaxSpeed, 40, 100));
 
         const ΔySinceLastMove = Math.min(absTravelLeft, this.speed * ΔtSinceLastMove);
         const direction = this.goingUp ? 1 : -1;
@@ -237,16 +233,11 @@ class Car {
         const absTravelLeftAfterMove = Math.abs(this.endY - this.y);
         if (absTravelLeftAfterMove < 1) {
             this.y = this.endY;
-            this.sound.osc.amp(0, 0.02);
             this.doorOpStarted = this.nowSecs();
             this.state = CarState.Opening;
             this.removeCurrentFloorFromDest();
             if (this.y === p.yFromFloor(1)) this.goingUp = true;
             if (this.y === p.yFromFloor(this.settings.numFloors)) this.goingUp = false;
-            if (this.settings.volume > 0) {
-                p.dingSound.pan(this.pan);
-                p.dingSound.play();
-            }
         }
     }
 

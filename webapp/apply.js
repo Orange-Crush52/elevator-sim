@@ -66,7 +66,6 @@ class Car {
         this.destFloors = [];
         this.riders = [];
         this.pan = settings.numCars === 1 ? 0 : p.map(carNumber, 1, settings.numCars, -0.8, 0.8);
-        this.sound = new MotorSound(this.pan);
         this.active = false;
         this.state = CarState.Idle;
     }
@@ -205,7 +204,6 @@ class Car {
             }
             this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
             this.state = CarState.Moving;
-            this.sound.osc.amp(p.map(this.settings.volume, 0, 10, 0, 0.6), 0.02);
             console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
             this.lastMoveTime = p.millis() / 1000;
             this.speed = 0;
@@ -230,14 +228,12 @@ class Car {
         else if (this.decelerating()) {
             this.speed = Math.sqrt(2 * this.accel * absTravelLeft);
         }
-        this.sound.osc.freq(p.map(this.speed, 0, this.maxMaxSpeed, 40, 100));
         const ΔySinceLastMove = Math.min(absTravelLeft, this.speed * ΔtSinceLastMove);
         const direction = this.goingUp ? 1 : -1;
         this.y += direction * ΔySinceLastMove;
         const absTravelLeftAfterMove = Math.abs(this.endY - this.y);
         if (absTravelLeftAfterMove < 1) {
             this.y = this.endY;
-            this.sound.osc.amp(0, 0.02);
             this.doorOpStarted = this.nowSecs();
             this.state = CarState.Opening;
             this.removeCurrentFloorFromDest();
@@ -245,10 +241,6 @@ class Car {
                 this.goingUp = true;
             if (this.y === p.yFromFloor(this.settings.numFloors))
                 this.goingUp = false;
-            if (this.settings.volume > 0) {
-                p.dingSound.pan(this.pan);
-                p.dingSound.play();
-            }
         }
     }
     addRider(rider) {
@@ -418,7 +410,7 @@ class Dispatcher {
             while (start === end) {
                 end = randomFloor();
             }
-            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats, this.talker));
+            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
         }
     }
 }
@@ -433,14 +425,13 @@ var RiderState;
     RiderState[RiderState["Exited"] = 5] = "Exited";
 })(RiderState || (RiderState = {}));
 class Rider {
-    constructor(p, settings, startFloor, destFloor, dispatcher, stats, talker) {
+    constructor(p, settings, startFloor, destFloor, dispatcher, stats) {
         this.p = p;
         this.settings = settings;
         this.startFloor = startFloor;
         this.destFloor = destFloor;
         this.dispatcher = dispatcher;
         this.stats = stats;
-        this.talker = talker;
         this.state = RiderState.Arriving;
         this.arrivalTime = p.millis() / 1000;
         this.carGeom = settings.geom.car;
@@ -477,7 +468,6 @@ class Rider {
         switch (this.state) {
             case RiderState.Arriving:
                 this.followPath(this.arrivingPath, RiderState.Waiting, () => {
-                    this.talker.speakRandom('arriving', undefined, 0.1);
                     this.requestCar();
                 });
                 break;
@@ -491,7 +481,6 @@ class Rider {
                     this.stats.riders.ridingKg += this.weight;
                 }, () => this.carIn.state === CarState.Open);
                 if (canceled) {
-                    this.talker.speakRandom('tooLate', undefined, 1);
                     this.carIn.removeRider(this);
                     this.carIn = undefined;
                     this.requestCar();
@@ -531,8 +520,6 @@ class Rider {
             this.millisAtLastMove = this.p.millis();
             this.state = RiderState.Boarding;
         }
-        else if (suitableExceptFullEncountered)
-            this.talker.speakRandom('carFull', undefined, 0.3);
     }
     outsideDoorPos(openCar) {
         return this.p.createVector(openCar.carCenterX() + this.fuzz(2), this.pos.y, openCar.settings.geom.carCenterZ + this.carGeom.z + this.fuzz(2));
@@ -547,7 +534,6 @@ class Rider {
             --this.stats.riders.riding;
             this.stats.riders.ridingKg -= this.weight;
             ++this.stats.riders.served;
-            this.talker.speakRandom('leaving', undefined, 0.1);
             this.state = RiderState.Exiting;
         }
     }

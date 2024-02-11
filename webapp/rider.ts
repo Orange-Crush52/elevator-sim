@@ -8,7 +8,6 @@ class Rider {
     private readonly destFloor: any;
     private dispatcher: any;
     private stats: any;
-    private talker: any;
     private state: RiderState;
     private readonly arrivalTime: number;
     private readonly carGeom: any;
@@ -25,14 +24,13 @@ class Rider {
     private exitingPath: any;
     private millisAtLastMove: number;
 
-    constructor(p, settings, startFloor, destFloor, dispatcher, stats, talker) {
+    constructor(p, settings, startFloor, destFloor, dispatcher, stats) {
         this.p = p;
         this.settings = settings;
         this.startFloor = startFloor;
         this.destFloor = destFloor;
         this.dispatcher = dispatcher;
         this.stats = stats;
-        this.talker = talker;
 
         this.state = RiderState.Arriving;
         this.arrivalTime = p.millis() / 1000;
@@ -73,7 +71,6 @@ class Rider {
         switch (this.state) {
             case RiderState.Arriving:
                 this.followPath(this.arrivingPath, RiderState.Waiting, () => {
-                    this.talker.speakRandom('arriving', undefined, 0.1);
                     this.requestCar()
                 });
                 break;
@@ -87,7 +84,6 @@ class Rider {
                     this.stats.riders.ridingKg += this.weight;
                 }, () => this.carIn.state === CarState.Open);
                 if (canceled) {
-                    this.talker.speakRandom('tooLate', undefined, 1);
                     this.carIn.removeRider(this);
                     this.carIn = undefined;
                     this.requestCar();
@@ -127,7 +123,7 @@ class Rider {
             this.setBoardingPath(suitableCar);
             this.millisAtLastMove = this.p.millis();
             this.state = RiderState.Boarding;
-        } else if (suitableExceptFullEncountered) this.talker.speakRandom('carFull', undefined, 0.3);
+        } 
     }
 
     outsideDoorPos(openCar) {
@@ -145,7 +141,6 @@ class Rider {
             --this.stats.riders.riding;
             this.stats.riders.ridingKg -= this.weight;
             ++this.stats.riders.served;
-            this.talker.speakRandom('leaving', undefined, 0.1);
             this.state = RiderState.Exiting;
         }
     }

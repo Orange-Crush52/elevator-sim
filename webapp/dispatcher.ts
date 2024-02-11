@@ -101,7 +101,7 @@ class Dispatcher {
             while (start === end) {
                 end = randomFloor();
             }
-            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats, this.talker));
+            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
         }
     }
 }
