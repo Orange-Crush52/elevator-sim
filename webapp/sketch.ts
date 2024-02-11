@@ -147,20 +147,8 @@ new p5(p => {
     }
 
     function setUpCamera() {
-        function setDefault() {
-            p.camera(0, 0, (p.height / 2.0) / p.tan(p.PI * 30.0 / 180.0), 0, 0, 0, 0, 1, 0);
-        }
-
-        if (settings.projectionType === 1) {
-            p.ortho();
-            setDefault();
-        } else {
-            p.perspective();
-            if (settings.controlMode === 0 /* Auto */) {
-                const avgCarY = cars.map(car => car.y).reduce((a, b) => a + b, 0) / cars.length;
-                p.camera(0, -avgCarY, (p.height / 2.0) / p.tan(p.PI * 30.0 / 180.0), 0, 0, 0, 0, 1, 0);
-            } else setDefault();
-        }
+        p.ortho();
+        // setDefault();
     }
 
     let lastDrawTimeSecs = p.millis() / 1000;

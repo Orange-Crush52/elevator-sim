@@ -37,10 +37,11 @@ class Controls {
             p.dingSound.setVolume(volume.value() / 100);  // It’s much louder than the motors
         });
 
-        const projection = p.createSelect();
-        ['Perspective', 'Orthographic'].forEach(p => projection.option(p));
-        projection.parent('#projectionParent');
-        projection.changed(() => settings.projectionType = projection.elt.selectedIndex);
+        const projection = 'Orthographic'
+        // const projection = p.createSelect();
+        // ['Orthographic'].forEach(p => projection.option(p));
+        // projection.parent('#projectionParent');
+        // projection.changed(() => settings.projectionType = projection.elt.selectedIndex);
 
         const controlMode = p.createSelect();
         ['Auto', 'Manual', 'Smart'].forEach(p => controlMode.option(p));

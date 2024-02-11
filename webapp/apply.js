@@ -310,10 +310,11 @@ class Controls {
             settings.volume = volume.value();
             p.dingSound.setVolume(volume.value() / 100); // It’s much louder than the motors
         });
-        const projection = p.createSelect();
-        ['Perspective', 'Orthographic'].forEach(p => projection.option(p));
-        projection.parent('#projectionParent');
-        projection.changed(() => settings.projectionType = projection.elt.selectedIndex);
+        const projection = 'Orthographic';
+        // const projection = p.createSelect();
+        // ['Orthographic'].forEach(p => projection.option(p));
+        // projection.parent('#projectionParent');
+        // projection.changed(() => settings.projectionType = projection.elt.selectedIndex);
         const controlMode = p.createSelect();
         ['Auto', 'Manual', 'Smart'].forEach(p => controlMode.option(p));
         controlMode.parent('#controlModeParent');
@@ -755,22 +756,8 @@ new p5(p => {
         });
     }
     function setUpCamera() {
-        function setDefault() {
-            p.camera(0, 0, (p.height / 2.0) / p.tan(p.PI * 30.0 / 180.0), 0, 0, 0, 0, 1, 0);
-        }
-        if (settings.projectionType === 1) {
-            p.ortho();
-            setDefault();
-        }
-        else {
-            p.perspective();
-            if (settings.controlMode === 0 /* Auto */) {
-                const avgCarY = cars.map(car => car.y).reduce((a, b) => a + b, 0) / cars.length;
-                p.camera(0, -avgCarY, (p.height / 2.0) / p.tan(p.PI * 30.0 / 180.0), 0, 0, 0, 0, 1, 0);
-            }
-            else
-                setDefault();
-        }
+        p.ortho();
+        // setDefault();
     }
     let lastDrawTimeSecs = p.millis() / 1000;
     p.draw = function () {
