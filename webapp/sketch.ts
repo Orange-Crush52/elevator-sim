@@ -44,12 +44,8 @@ new p5(p => {
     let building;
     let stats;
     let dispatcher;
-    let talker;
+    // let talker;
     let ready = false;
-
-    p.preload = function() {
-        p.dingSound = p.loadSound('assets/ding.wav');
-    };
 
     p.setup = function() {
         const cg = settings.geom;
@@ -58,16 +54,16 @@ new p5(p => {
         settings.numFloors = Math.floor(p.height / settings.geom.storyHeight);
         stats = new Stats();
         controls = new Controls(p, settings, stats);
-        talker = new Talker(settings);
-        talker.whenLoaded(() => {
+        // talker = new Talker(settings);
+        // talker.whenLoaded(() => {
+            // might want to make a new when loaded
             cars = Array.from(Array(settings.numCars).keys(), n => new Car(p, settings, stats, n + 1));
             building = new Building(settings, cars);
-            dispatcher = new Dispatcher(p, settings, cars, stats, talker);
+            dispatcher = new Dispatcher(p, settings, cars, stats);
             controls.createKnobs(passengerLoadTypes);
             controls.activeCarsChange = () => dispatcher.updateCarActiveStatuses();
-            controls.volumeChange = v => talker.volume(v);
             ready = true;
-        });
+        // });
     };
 
     function setCanvasSize() {

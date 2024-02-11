@@ -4,18 +4,16 @@ class Dispatcher {
     private readonly settings: any;
     private readonly cars: any;
     private readonly stats: any;
-    private readonly talker: any;
     private carCallQueue: any[];
     private riders: any[];
     private numActiveCarsInCache: number;
     private cachedActiveCars: any[];
 
-    constructor(p, settings, cars, stats, talker) {
+    constructor(p, settings, cars, stats) {
         this.p = p;
         this.settings = settings;
         this.cars = cars;
         this.stats = stats;
-        this.talker = talker;
 
         this.carCallQueue = [];
         this.riders = [];
