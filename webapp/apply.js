@@ -293,15 +293,6 @@ class Controls {
             settings.numActiveCars = numCars.value();
             this.activeCarsChange();
         });
-        const volume = p.select('#volume');
-        volume.value(settings.volume);
-        volume.changed(() => {
-            if (p.getAudioContext().state !== 'running') { // todo Is this required?
-                p.getAudioContext().resume();
-            }
-            settings.volume = volume.value();
-            p.dingSound.setVolume(volume.value() / 100); // It’s much louder than the motors
-        });
         const projection = 'Orthographic';
         // const projection = p.createSelect();
         // ['Orthographic'].forEach(p => projection.option(p));
@@ -321,10 +312,6 @@ class Controls {
         passengerLoad.changed(() => settings.passengerLoad = passengerLoad.elt.selectedIndex);
         this.paymentsChart = p.createGraphics(this.stats.maxRecentRiderPayments, 15).parent('#paymentsChart');
         $('#paymentsChart canvas').show();
-        const speakers = p.createSelect();
-        ['None', 'All', 'Native English'].forEach(p => speakers.option(p));
-        speakers.parent('#speakersParent');
-        speakers.changed(() => settings.speakersType = speakers.elt.selectedIndex);
     }
 }
 /** Manages riders, and calls elevators for them. */
@@ -771,14 +758,6 @@ new p5(p => {
         p.pop();
     }
 });
-class MotorSound {
-    constructor(pan) {
-        const osc = this.osc = new p5.Oscillator(0, 'triangle');
-        osc.pan(pan);
-        osc.amp(0);
-        osc.start();
-    }
-}
 class Stats {
     constructor() {
         this.riders = {

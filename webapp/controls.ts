@@ -27,16 +27,6 @@ class Controls {
             this.activeCarsChange();
         });
 
-        const volume = p.select('#volume');
-        volume.value(settings.volume);
-        volume.changed(() => {
-            if (p.getAudioContext().state !== 'running') {  // todo Is this required?
-              p.getAudioContext().resume();
-            }
-            settings.volume = volume.value();
-            p.dingSound.setVolume(volume.value() / 100);  // It’s much louder than the motors
-        });
-
         const projection = 'Orthographic'
         // const projection = p.createSelect();
         // ['Orthographic'].forEach(p => projection.option(p));
@@ -62,9 +52,5 @@ class Controls {
             15).parent('#paymentsChart');
         $('#paymentsChart canvas').show();
         
-        const speakers = p.createSelect();
-        ['None', 'All', 'Native English'].forEach(p => speakers.option(p));
-        speakers.parent('#speakersParent');
-        speakers.changed(() => settings.speakersType = speakers.elt.selectedIndex);
     }
 }
