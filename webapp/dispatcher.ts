@@ -50,6 +50,10 @@ class Dispatcher {
                 }
             }
         }
+        else if(this.settings.controlMode === 2) {
+            // console.log("here")
+            const request = this.carCallQueue.shift();
+        }
     }
 
     /** Returns an array of active cars, selected from the middle of the group, moving outward */

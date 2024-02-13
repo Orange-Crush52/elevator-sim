@@ -312,6 +312,9 @@ class Controls {
         passengerLoad.changed(() => settings.passengerLoad = passengerLoad.elt.selectedIndex);
         this.paymentsChart = p.createGraphics(this.stats.maxRecentRiderPayments, 15).parent('#paymentsChart');
         $('#paymentsChart canvas').show();
+        // this.waitChart = p.createGraphics(this.stats.maxRecentRiderPayments,
+        //     45).parent('#waitChart');
+        // $('#waitChart canvas').show();
     }
 }
 /** Manages riders, and calls elevators for them. */
@@ -353,6 +356,10 @@ class Dispatcher {
                         this.carCallQueue.push(request);
                 }
             }
+        }
+        else if (this.settings.controlMode === 2) {
+            // console.log("here")
+            const request = this.carCallQueue.shift();
         }
     }
     /** Returns an array of active cars, selected from the middle of the group, moving outward */
@@ -731,6 +738,16 @@ new p5(p => {
             g.stroke('gray');
             g.line(i, g.height - rideCost, i, g.height);
         });
+        // const cg = controls.waitChart;
+        // const spacing = cg.width/w.length;
+        // let px = 0;
+        // let py = w[0];
+        // cg.clear();
+        // w.forEach((time, index) => {
+        //     cg.line(px, py, index*spacing, time);
+        //     px= index*spacing;
+        //     py = time;
+        // })
     }
     function setUpCamera() {
         p.ortho();

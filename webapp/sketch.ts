@@ -146,6 +146,17 @@ new p5(p => {
             g.stroke('gray');
             g.line(i, g.height - rideCost, i, g.height);
         });
+
+        // const cg = controls.waitChart;
+        // const spacing = cg.width/w.length;
+        // let px = 0;
+        // let py = w[0];
+        // cg.clear();
+        // w.forEach((time, index) => {
+        //     cg.line(px, py, index*spacing, time);
+        //     px= index*spacing;
+        //     py = time;
+        // })
     }
 
     function setUpCamera() {

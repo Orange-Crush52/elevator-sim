@@ -4,6 +4,7 @@ class Controls {
     private stats: any;
     private readonly activeCarsChange: () => void;
     private paymentsChart: any;
+    private waitChart: any;
 
     constructor(p, settings, stats) {
         this.p = p;
@@ -52,7 +53,9 @@ class Controls {
             15).parent('#paymentsChart');
         $('#paymentsChart canvas').show();
 
-        
+        // this.waitChart = p.createGraphics(this.stats.maxRecentRiderPayments,
+        //     45).parent('#waitChart');
+        // $('#waitChart canvas').show();
         
     }
 }
