@@ -9,7 +9,7 @@ class Rider {
     private dispatcher: any;
     private stats: any;
     private state: RiderState;
-    private readonly arrivalTime: number;
+    private readonly arrivalTime: number; // the Second that the rider arrives to the elevator bay
     private readonly carGeom: any;
     private readonly pos: any;
     private readonly arrivingPath: any[];
@@ -24,6 +24,7 @@ class Rider {
     private exitingPath: any;
     private millisAtLastMove: number;
 
+
     constructor(p, settings, startFloor, destFloor, dispatcher, stats) {
         this.p = p;
         this.settings = settings;
@@ -34,6 +35,7 @@ class Rider {
 
         this.state = RiderState.Arriving;
         this.arrivalTime = p.millis() / 1000;
+
         this.carGeom = settings.geom.car;
         this.setBodyAttributes();
         const travelDirection = p.random([-1, 1]);
@@ -90,7 +92,7 @@ class Rider {
                     this.state = RiderState.Waiting;
                 }
                 break;
-            case RiderState.Riding:
+            case RiderState.Riding:               
                 this.ride();
                 break;
             case RiderState.Exiting:
@@ -122,6 +124,9 @@ class Rider {
             this.carIn.goTo(this.destFloor);
             this.setBoardingPath(suitableCar);
             this.millisAtLastMove = this.p.millis();
+            // Time is from when the enter the elevator bay to when they board the elevator
+            const waitTime = this.p.millis() / 1000 - this.arrivalTime;
+            this.stats.collectTimes(waitTime);
             this.state = RiderState.Boarding;
         } 
     }

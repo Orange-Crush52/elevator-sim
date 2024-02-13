@@ -51,6 +51,8 @@ class Controls {
         this.paymentsChart = p.createGraphics(this.stats.maxRecentRiderPayments,
             15).parent('#paymentsChart');
         $('#paymentsChart canvas').show();
+
+        
         
     }
 }

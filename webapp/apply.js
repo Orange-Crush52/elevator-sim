@@ -204,7 +204,7 @@ class Car {
             }
             this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
             this.state = CarState.Moving;
-            console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
+            // console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
             this.lastMoveTime = p.millis() / 1000;
             this.speed = 0;
             this.maxMaxSpeed = 1000;
@@ -266,7 +266,7 @@ class Car {
             if (!this.destFloors.find(f => f === floor)) {
                 this.destFloors.push(floor);
                 this.sortDestinations();
-                console.log(`Car ${this.carNumber} will be going gog ogo go to ${floor}`);
+                // console.log(`Car ${this.carNumber} will be going gog ogo go to ${floor}`);
             }
         }
     }
@@ -335,6 +335,7 @@ class Dispatcher {
             const request = this.carCallQueue.shift();
             if (request) {
                 // just uses closest non busy elevator (Standard Elevator Algorithm)
+                // Weird bug where elevators get stuck on top floor
                 const floorY = this.p.yFromFloor(request.floor);
                 const activeCars = this.activeCars();
                 const idleCars = activeCars.filter(car => car.state === CarState.Idle && car.goingUp === request.goingUp);
@@ -504,6 +505,9 @@ class Rider {
             this.carIn.goTo(this.destFloor);
             this.setBoardingPath(suitableCar);
             this.millisAtLastMove = this.p.millis();
+            // Time is from when the enter the elevator bay to when they board the elevator
+            const waitTime = this.p.millis() / 1000 - this.arrivalTime;
+            this.stats.collectTimes(waitTime);
             this.state = RiderState.Boarding;
         }
     }
@@ -699,6 +703,7 @@ new p5(p => {
     }
     function showRiderStats() {
         const s = stats.riders;
+        // add wait times to stats.riders
         const l = s => s.toLocaleString();
         const now = p.millis() / 1000;
         const waitingRiders = dispatcher.riders.filter(r => r.state === RiderState.Waiting);
@@ -707,6 +712,9 @@ new p5(p => {
         const profit = s.payments - stats.costs.operating;
         $('#score').html(l(Math.round(Math.max(0, profit / (p.millis() / 1000 / 60)))));
         $('#waiting').html(`${l(s.waiting)}${wait}`);
+        const w = stats.waitTimes;
+        const average = arr => arr.reduce((p, c) => p + c, 0) / arr.length;
+        $('#waitTime').html(l(average(w)));
         const weight = s.riding ? ` (${l(s.ridingKg / 1000)} Mg)` : '';
         $('#riding').html(`${l(s.riding)}${weight}`);
         $('#served').html(l(s.served));
@@ -777,6 +785,7 @@ class Stats {
         this.maxRecentRiderPayments = 150;
         this.recentRiderPayments = [];
         this.recentTripTimes = [];
+        this.waitTimes = [];
     }
     chargeRider(p, tripTime) {
         const penaltyTime = p.constrain(tripTime - 30, 0, 300);
@@ -788,6 +797,9 @@ class Stats {
             this.recentTripTimes.shift();
         }
         this.riders.payments += rideCost;
+    }
+    collectTimes(waitTime) {
+        this.waitTimes.push(waitTime);
     }
     addMovementCosts(numFloors, speed) {
         this.costs.operating += this.costs.perFloor * (1 + speed / 10) * numFloors;

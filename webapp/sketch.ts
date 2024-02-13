@@ -116,6 +116,7 @@ new p5(p => {
 
     function showRiderStats() {
         const s = stats.riders;
+        // add wait times to stats.riders
         const l = s => s.toLocaleString();
         const now = p.millis() / 1000;
         const waitingRiders = dispatcher.riders.filter(r => r.state === RiderState.Waiting);
@@ -124,6 +125,11 @@ new p5(p => {
         const profit = s.payments - stats.costs.operating;
         $('#score').html(l(Math.round(Math.max(0, profit / (p.millis() / 1000 / 60)))));
         $('#waiting').html(`${l(s.waiting)}${wait}`);
+
+        const w = stats.waitTimes;
+        const average = arr => arr.reduce( ( p, c ) => p + c, 0 ) / arr.length;
+        $('#waitTime').html(l(average(w)));
+
         const weight = s.riding ? ` (${l(s.ridingKg / 1000)} Mg)` : '';
         $('#riding').html(`${l(s.riding)}${weight}`);
         $('#served').html(l(s.served));

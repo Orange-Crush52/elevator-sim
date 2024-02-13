@@ -16,6 +16,7 @@ class Stats {
     private maxRecentRiderPayments = 150;
     private recentRiderPayments = [];
     private recentTripTimes = [];
+    private waitTimes = [];
 
     chargeRider(p, tripTime) {
         const penaltyTime = p.constrain(tripTime - 30, 0, 300);
@@ -27,6 +28,10 @@ class Stats {
             this.recentTripTimes.shift();
         }
         this.riders.payments += rideCost;
+    }
+
+    collectTimes(waitTime) {
+        this.waitTimes.push(waitTime);
     }
 
     addMovementCosts(numFloors, speed) {

@@ -33,6 +33,7 @@ class Dispatcher {
 
             if (request) {
                 // just uses closest non busy elevator (Standard Elevator Algorithm)
+                // Weird bug where elevators get stuck on top floor
                 const floorY = this.p.yFromFloor(request.floor);
                 const activeCars = this.activeCars();
                 const idleCars = activeCars.filter(car => car.state === CarState.Idle && car.goingUp === request.goingUp);
