@@ -92,6 +92,7 @@ class Dispatcher {
         const p = this.p;
         const randomFloor = () => p.random(1) < 0.5 ? 1 : Math.floor(p.random(this.settings.numFloors) + 1);
         const load = this.settings.passengerLoad;
+        // load right here this is where to change !!!!!!!!!!!!!!!!!!!!
         const desiredPerMin = load === 0 ? // Varying
             p.map(p.sin(p.millis() / 1e5), -1, 1, 10, 60) :
             Math.pow(5, load - 1);
