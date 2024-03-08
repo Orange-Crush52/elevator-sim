@@ -190,28 +190,34 @@ class Car {
     }
 
     idle(p) {
-        if (this.destFloors.length) {
-            let nextDest = this.destFloors.find(f =>
-                this.goingUp ? p.yFromFloor(f) > this.y : p.yFromFloor(f) < this.y);
-            if (!nextDest) {
-                this.goingUp = !this.goingUp;
-                this.sortDestinations();
-                nextDest = this.destFloors[0];
+        if(this.settings.controlMode ===  0) {
+            if (this.destFloors.length) {
+                let nextDest = this.destFloors.find(f =>
+                    this.goingUp ? p.yFromFloor(f) > this.y : p.yFromFloor(f) < this.y);
+                if (!nextDest) {
+                    this.goingUp = !this.goingUp;
+                    this.sortDestinations();
+                    nextDest = this.destFloors[0];
+                }
+                this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
+                this.state = CarState.Moving;
+                // console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
+                this.lastMoveTime = p.millis() / 1000;
+                this.speed = 0;
+                this.maxMaxSpeed = 1000;
+                this.maxSpeed = p.map(this.settings.elevSpeed, 1, 10, 20, this.maxMaxSpeed);
+                this.accel = this.maxSpeed * 2;
+                this.startY = this.y;
+                this.endY = p.yFromFloor(nextDest);
+                this.absTrip = Math.abs(this.startY - this.endY);
+                this.accelDistance = Math.min(this.absTrip / 2,
+                    (this.maxSpeed * this.maxSpeed) / (2 * this.accel));
             }
-            this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
-            this.state = CarState.Moving;
-            // console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
-            this.lastMoveTime = p.millis() / 1000;
-            this.speed = 0;
-            this.maxMaxSpeed = 1000;
-            this.maxSpeed = p.map(this.settings.elevSpeed, 1, 10, 20, this.maxMaxSpeed);
-            this.accel = this.maxSpeed * 2;
-            this.startY = this.y;
-            this.endY = p.yFromFloor(nextDest);
-            this.absTrip = Math.abs(this.startY - this.endY);
-            this.accelDistance = Math.min(this.absTrip / 2,
-                (this.maxSpeed * this.maxSpeed) / (2 * this.accel));
         }
+        else if(this.settings.controlMode === 2) {
+            
+        }
+        
     }
 
     move(p) {

@@ -13,7 +13,7 @@ class Controls {
         this.activeCarsChange = () => {};
     }
 
-    createKnobs(passengerLoadTypes) {
+    createKnobs(passengerLoadTypes, passengerTrafficTypes) {
         const p = this.p;
         const settings = this.settings;
 
@@ -38,7 +38,7 @@ class Controls {
         ['Auto', 'Manual', 'Smart'].forEach(p => controlMode.option(p));
         controlMode.parent('#controlModeParent');
         controlMode.changed(() => settings.controlMode = controlMode.elt.selectedIndex);
-
+        console.log(controlMode)
         const view = p.createSelect();
         ['Front', 'Side', 'Use Mouse'].forEach(v => view.option(v));
         view.parent('#viewParent');
@@ -48,6 +48,11 @@ class Controls {
         passengerLoadTypes.forEach(o => passengerLoad.option(o));
         passengerLoad.parent('#passengerLoadParent');
         passengerLoad.changed(() => settings.passengerLoad = passengerLoad.elt.selectedIndex);
+
+        const passengerTraffic = p.createSelect();
+        passengerTrafficTypes.forEach(o => passengerTraffic.option(o));
+        passengerTraffic.parent('#passengerTrafficTypesParent');
+        passengerTraffic.changed(() => settings.passengerTraffic = passengerTraffic.elt.selectedIndex);
 
         this.paymentsChart = p.createGraphics(this.stats.maxRecentRiderPayments,
             15).parent('#paymentsChart');

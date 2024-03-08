@@ -2,8 +2,9 @@ declare const p5;
 
 new p5(p => {
     const passengerLoadTypes =
-        ['Varying', 'Very Light', 'Light', 'Moderate', 'Heavy', 'Very Heavy', 'Insane'];
-
+        ['Varying', 'Very Light', 'Light' ,'Moderate', 'Heavy', 'Very Heavy', 'Insane'];
+    const passengerTrafficTypes = 
+        ['Meeting', 'Up', 'Down'];
     function createSettings() {
         const car = p.createVector(1, 1, 1.3).mult(50);
         const floorDepthOthers = 50;
@@ -27,10 +28,8 @@ new p5(p => {
             view: 0,
             passengerLoad: 0,
             passengerLoadNumManualLevels: passengerLoadTypes.length - 1, // The first is not manual
-            volume: 0,
-            speakersType: 0,
-            numFloors: undefined,
-            projectionType: undefined
+            numFloors: undefined, // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            passengerTraffic: 0
         };
     }
 
@@ -60,7 +59,7 @@ new p5(p => {
             cars = Array.from(Array(settings.numCars).keys(), n => new Car(p, settings, stats, n + 1));
             building = new Building(settings, cars);
             dispatcher = new Dispatcher(p, settings, cars, stats);
-            controls.createKnobs(passengerLoadTypes);
+            controls.createKnobs(passengerLoadTypes, passengerTrafficTypes);
             controls.activeCarsChange = () => dispatcher.updateCarActiveStatuses();
             ready = true;
         // });

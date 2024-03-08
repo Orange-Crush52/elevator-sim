@@ -1,3 +1,14 @@
+/** Ant Colony Optimization for Elevator Dispatch */
+class Brain {
+    constructor(p, settings, requests, activeIndex, idleIndex) {
+        this.p = p;
+        this.settings = settings;
+        this.requests = requests;
+        this.activeIndex = activeIndex;
+        this.idleIndex = idleIndex;
+        this.carCallQueue = [];
+    }
+}
 class Building {
     constructor(settings, cars) {
         this.settings = settings;
@@ -195,25 +206,29 @@ class Car {
         return this.p.millis() / 1000;
     }
     idle(p) {
-        if (this.destFloors.length) {
-            let nextDest = this.destFloors.find(f => this.goingUp ? p.yFromFloor(f) > this.y : p.yFromFloor(f) < this.y);
-            if (!nextDest) {
-                this.goingUp = !this.goingUp;
-                this.sortDestinations();
-                nextDest = this.destFloors[0];
+        if (this.settings.controlMode === 0) {
+            if (this.destFloors.length) {
+                let nextDest = this.destFloors.find(f => this.goingUp ? p.yFromFloor(f) > this.y : p.yFromFloor(f) < this.y);
+                if (!nextDest) {
+                    this.goingUp = !this.goingUp;
+                    this.sortDestinations();
+                    nextDest = this.destFloors[0];
+                }
+                this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
+                this.state = CarState.Moving;
+                // console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
+                this.lastMoveTime = p.millis() / 1000;
+                this.speed = 0;
+                this.maxMaxSpeed = 1000;
+                this.maxSpeed = p.map(this.settings.elevSpeed, 1, 10, 20, this.maxMaxSpeed);
+                this.accel = this.maxSpeed * 2;
+                this.startY = this.y;
+                this.endY = p.yFromFloor(nextDest);
+                this.absTrip = Math.abs(this.startY - this.endY);
+                this.accelDistance = Math.min(this.absTrip / 2, (this.maxSpeed * this.maxSpeed) / (2 * this.accel));
             }
-            this.stats.addMovementCosts(Math.abs(p.floorFromY(this.y) - nextDest), this.settings.elevSpeed);
-            this.state = CarState.Moving;
-            // console.log(`Car ${this.carNumber} moving to ${nextDest} of ${this.destFloors}!!!!!!!!!`);
-            this.lastMoveTime = p.millis() / 1000;
-            this.speed = 0;
-            this.maxMaxSpeed = 1000;
-            this.maxSpeed = p.map(this.settings.elevSpeed, 1, 10, 20, this.maxMaxSpeed);
-            this.accel = this.maxSpeed * 2;
-            this.startY = this.y;
-            this.endY = p.yFromFloor(nextDest);
-            this.absTrip = Math.abs(this.startY - this.endY);
-            this.accelDistance = Math.min(this.absTrip / 2, (this.maxSpeed * this.maxSpeed) / (2 * this.accel));
+        }
+        else if (this.settings.controlMode === 2) {
         }
     }
     move(p) {
@@ -281,7 +296,7 @@ class Controls {
         this.stats = stats;
         this.activeCarsChange = () => { };
     }
-    createKnobs(passengerLoadTypes) {
+    createKnobs(passengerLoadTypes, passengerTrafficTypes) {
         const p = this.p;
         const settings = this.settings;
         const elevSpeed = p.select('#elevSpeed');
@@ -302,6 +317,7 @@ class Controls {
         ['Auto', 'Manual', 'Smart'].forEach(p => controlMode.option(p));
         controlMode.parent('#controlModeParent');
         controlMode.changed(() => settings.controlMode = controlMode.elt.selectedIndex);
+        console.log(controlMode);
         const view = p.createSelect();
         ['Front', 'Side', 'Use Mouse'].forEach(v => view.option(v));
         view.parent('#viewParent');
@@ -310,6 +326,10 @@ class Controls {
         passengerLoadTypes.forEach(o => passengerLoad.option(o));
         passengerLoad.parent('#passengerLoadParent');
         passengerLoad.changed(() => settings.passengerLoad = passengerLoad.elt.selectedIndex);
+        const passengerTraffic = p.createSelect();
+        passengerTrafficTypes.forEach(o => passengerTraffic.option(o));
+        passengerTraffic.parent('#passengerTrafficTypesParent');
+        passengerTraffic.changed(() => settings.passengerTraffic = passengerTraffic.elt.selectedIndex);
         this.paymentsChart = p.createGraphics(this.stats.maxRecentRiderPayments, 15).parent('#paymentsChart');
         $('#paymentsChart canvas').show();
         // this.waitChart = p.createGraphics(this.stats.maxRecentRiderPayments,
@@ -319,11 +339,13 @@ class Controls {
 }
 /** Manages riders, and calls elevators for them. */
 class Dispatcher {
+    // private brain: any;
     constructor(p, settings, cars, stats) {
         this.p = p;
         this.settings = settings;
         this.cars = cars;
         this.stats = stats;
+        // this.brain = brain;
         this.carCallQueue = [];
         this.riders = [];
     }
@@ -358,8 +380,13 @@ class Dispatcher {
             }
         }
         else if (this.settings.controlMode === 2) {
-            // console.log("here")
-            const request = this.carCallQueue.shift();
+            const requests = this.carCallQueue;
+            if (requests) {
+                let floors = [];
+                for (let i = 0; i < requests.length; i++) {
+                    floors.push(requests[i].floor);
+                }
+            }
         }
     }
     /** Returns an array of active cars, selected from the middle of the group, moving outward */
@@ -391,20 +418,44 @@ class Dispatcher {
     }
     possiblySpawnNewRider() {
         const p = this.p;
-        const randomFloor = () => p.random(1) < 0.5 ? 1 : Math.floor(p.random(this.settings.numFloors) + 1);
+        // const randomFloor = () => p.random(1) < 0.5 ? 1 : Math.floor(p.random(this.settings.numFloors) + 1);
+        const randomFloor = () => Math.floor(p.random(this.settings.numFloors) + 1);
         const load = this.settings.passengerLoad;
+        // load right here this is where to change !!!!!!!!!!!!!!!!!!!!
         const desiredPerMin = load === 0 ? // Varying
             p.map(p.sin(p.millis() / 1e5), -1, 1, 10, 60) :
             Math.pow(5, load - 1);
         const desiredPerSec = desiredPerMin / 60;
         const spawnChance = Math.min(1, desiredPerSec / p.frameRate());
-        if (p.random(1) < spawnChance) {
-            const start = randomFloor();
-            let end = randomFloor();
-            while (start === end) {
-                end = randomFloor();
+        if (this.settings.passengerTraffic === 0) {
+            if (p.random(1) < spawnChance) {
+                const start = randomFloor();
+                let end = randomFloor();
+                while (start === end) {
+                    end = randomFloor();
+                }
+                this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
             }
-            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
+        }
+        else if (this.settings.passengerTraffic === 1) {
+            if (p.random(1) < spawnChance) {
+                const start = 1;
+                let end = randomFloor();
+                while (start === end) {
+                    end = randomFloor();
+                }
+                this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
+            }
+        }
+        else if (this.settings.passengerTraffic === 2) {
+            if (p.random(1) < spawnChance) {
+                const start = randomFloor();
+                let end = 1;
+                while (start === end) {
+                    end = randomFloor();
+                }
+                this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
+            }
         }
     }
 }
@@ -610,6 +661,7 @@ class Rider {
 }
 new p5(p => {
     const passengerLoadTypes = ['Varying', 'Very Light', 'Light', 'Moderate', 'Heavy', 'Very Heavy', 'Insane'];
+    const passengerTrafficTypes = ['Meeting', 'Up', 'Down'];
     function createSettings() {
         const car = p.createVector(1, 1, 1.3).mult(50);
         const floorDepthOthers = 50;
@@ -633,10 +685,8 @@ new p5(p => {
             view: 0,
             passengerLoad: 0,
             passengerLoadNumManualLevels: passengerLoadTypes.length - 1, // The first is not manual
-            volume: 0,
-            speakersType: 0,
-            numFloors: undefined,
-            projectionType: undefined
+            numFloors: undefined, // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            passengerTraffic: 0
         };
     }
     const settings = createSettings();
@@ -663,7 +713,7 @@ new p5(p => {
         cars = Array.from(Array(settings.numCars).keys(), n => new Car(p, settings, stats, n + 1));
         building = new Building(settings, cars);
         dispatcher = new Dispatcher(p, settings, cars, stats);
-        controls.createKnobs(passengerLoadTypes);
+        controls.createKnobs(passengerLoadTypes, passengerTrafficTypes);
         controls.activeCarsChange = () => dispatcher.updateCarActiveStatuses();
         ready = true;
         // });

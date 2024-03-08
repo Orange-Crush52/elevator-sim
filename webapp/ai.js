@@ -1,15 +1,7 @@
-console.log("hello world")
+
 class AntColonyOptimizer {
-    private distances;
-    private pheromones;
-    private nAnts;
-    private nBest;
-    private nIterations;
-    private decay;
-    private alpha;
-    private beta;
-    private tau
-    constructor(distances, nAnts, nBest, nIterations, decay, alpha=0.5, beta=1.1, tau=0.08) {
+
+    constructor(distances, nAnts, nBest, nIterations, decay, alpha=0.7, beta=1.1, tau=0.09) {
         this.distances = distances; // 2D array of distances between cities
         this.pheromones = new Array(distances.length).fill(null).map(() => new Array(distances.length).fill(1));
         this.nAnts = nAnts;
@@ -185,5 +177,5 @@ let distances = [[0, 10, 15, 20, 25, 30, 35, 40, 45, 50], //distance of city 0 t
                 [40, 30, 25, 20, 15, 10, 5, 0, 5, 10],//distance of city 7 to all other cities
                 [45, 35, 30, 25, 20, 15, 10, 5, 0, 5],//distance of city 8 to all other cities
                 [50, 40, 35, 30, 25, 20, 15, 10, 5, 0]]; // Replace with your actual distances matrix
-let aco = new AntColonyOptimizer(distances, 5, 2, 100, 0.5);
+let aco = new AntColonyOptimizer(distances, 5, 2, 500, 0.5);
 aco.run();

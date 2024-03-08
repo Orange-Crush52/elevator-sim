@@ -9,12 +9,15 @@ class Dispatcher {
     private numActiveCarsInCache: number;
     private cachedActiveCars: any[];
 
+    // private brain: any;
+
     constructor(p, settings, cars, stats) {
         this.p = p;
         this.settings = settings;
         this.cars = cars;
         this.stats = stats;
 
+        // this.brain = brain;
         this.carCallQueue = [];
         this.riders = [];
     }
@@ -51,8 +54,15 @@ class Dispatcher {
             }
         }
         else if(this.settings.controlMode === 2) {
-            // console.log("here")
-            const request = this.carCallQueue.shift();
+            const requests = this.carCallQueue;
+            if(requests) {
+                let floors =[]
+                for(let i=0; i<requests.length; i++) {
+                    floors.push(requests[i].floor)
+                }
+            }
+            
+
         }
     }
 
@@ -90,7 +100,8 @@ class Dispatcher {
 
     possiblySpawnNewRider() {
         const p = this.p;
-        const randomFloor = () => p.random(1) < 0.5 ? 1 : Math.floor(p.random(this.settings.numFloors) + 1);
+        // const randomFloor = () => p.random(1) < 0.5 ? 1 : Math.floor(p.random(this.settings.numFloors) + 1);
+        const randomFloor = () => Math.floor(p.random(this.settings.numFloors) + 1);
         const load = this.settings.passengerLoad;
         // load right here this is where to change !!!!!!!!!!!!!!!!!!!!
         const desiredPerMin = load === 0 ? // Varying
@@ -98,14 +109,36 @@ class Dispatcher {
             Math.pow(5, load - 1);
         const desiredPerSec = desiredPerMin / 60;
         const spawnChance = Math.min(1, desiredPerSec / p.frameRate());
-
-        if (p.random(1) < spawnChance) {
-            const start = randomFloor();
-            let end = randomFloor();
-            while (start === end) {
-                end = randomFloor();
+        if(this.settings.passengerTraffic === 0) {
+            if (p.random(1) < spawnChance) {
+                const start = randomFloor();
+                let end = randomFloor();
+                while (start === end) {
+                    end = randomFloor();
+                }
+                this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
             }
-            this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
         }
+        else if(this.settings.passengerTraffic ===1) {
+            if (p.random(1) < spawnChance) {
+                const start = 1;
+                let end = randomFloor();
+                while (start === end) {
+                    end = randomFloor();
+                }
+                this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
+            }
+        }
+        else if(this.settings.passengerTraffic ===2) {
+            if (p.random(1) < spawnChance) {
+                const start = randomFloor();
+                let end = 1;
+                while (start === end) {
+                    end = randomFloor();
+                }
+                this.riders.push(new Rider(p, this.settings, start, end, this, this.stats));
+            }
+        }
+        
     }
 }
