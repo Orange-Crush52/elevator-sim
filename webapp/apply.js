@@ -675,7 +675,7 @@ new p5(p => {
                 scaleMetersTo3dUnits: 16, // Some objects are defined with metric dimensions
                 car: car,
                 carCenterZ: -car.z / 2 - floorDepthOthers / 2,
-                storyHeight: car.y * 1.7,
+                storyHeight: car.y * 1.2,
                 floorDepthGround: floorDepthOthers * 2,
                 floorDepthOthers: floorDepthOthers,
                 canvas: undefined

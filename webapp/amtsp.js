@@ -17,6 +17,9 @@ class AntColonyMTSP {
         let bestSolution = { cost: Infinity, tours: [] };
         for (let iteration = 0; iteration < this.nIterations; iteration++) {
             this.globalVisited.clear(); // Reset globalVisited at the start of each iteration
+            for(let i=0; i<this.startingPoints.length; i++) {
+                this.globalVisited.add(this.startingPoints[i])
+            }
             let allTours = this.buildSolutions();
             this.updatePheromones(allTours);
             
@@ -52,7 +55,7 @@ class AntColonyMTSP {
         this.globalVisited.add(startCity);
 
         let currentCity = startCity;
-        while (this.globalVisited.size <( this.distances.length / this.startingPoints.length)  ) {
+        while (this.globalVisited.size < this.distances.length) {
             let nextCity = this.selectNextCity(currentCity, this.globalVisited);
             if (nextCity === -1) break; // No more cities to visit
             tour.push(nextCity);
@@ -65,21 +68,23 @@ class AntColonyMTSP {
     selectNextCity(currentCity, globalVisited) {
         let probabilities = [];
         let denominator = 0;
-
+    
         for (let i = 0; i < this.distances.length; i++) {
             if (!globalVisited.has(i)) {
                 let pheromoneLevel = Math.pow(this.pheromones[currentCity][i], this.alpha);
-                let heuristicValue = Math.pow(1 / (this.distances[currentCity][i] + this.tau), this.beta); // Adjusted for tau
+                let heuristicValue = Math.pow(1 / (this.distances[currentCity][i] + this.tau), this.beta);
                 let probability = pheromoneLevel * heuristicValue;
                 probabilities.push({ city: i, probability });
                 denominator += probability;
             }
         }
-
+    
+        if (probabilities.length === 0) return -1; // No unvisited cities available
+    
         // Normalize probabilities
         probabilities = probabilities.map(p => ({ city: p.city, probability: p.probability / denominator }));
-
-        // Roulette wheel selection
+    
+        // Roulette wheel selection to dynamically choose the next city
         let randomChoice = Math.random();
         let cumulativeProbability = 0;
         for (let prob of probabilities) {
@@ -88,7 +93,7 @@ class AntColonyMTSP {
                 return prob.city;
             }
         }
-
+    
         return -1; // In case no unvisited city is found
     }
 
@@ -137,6 +142,6 @@ let distances = [[0, 10, 15, 20, 25, 30, 35, 40, 45, 50], //distance of city 0 t
                 [40, 30, 25, 20, 15, 10, 5, 0, 5, 10],//distance of city 7 to all other cities
                 [45, 35, 30, 25, 20, 15, 10, 5, 0, 5],//distance of city 8 to all other cities
                 [50, 40, 35, 30, 25, 20, 15, 10, 5, 0]]; // Replace with your actual distances matrix
-let startingPoints = [4,2,3,]; // Example starting points for each salesman
+let startingPoints = [0, 2, 4, 6, 8]; // Example starting points for each salesman
 let aco = new AntColonyMTSP(distances, 5, 2, 100, 0.5, startingPoints, 1, 2, 0.1);
 aco.run();

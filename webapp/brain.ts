@@ -22,6 +22,10 @@ class Brain {
 
     }
 
+    activeDistanceMatrix(car, floor) {
+        
+    }
+
 
     
 
