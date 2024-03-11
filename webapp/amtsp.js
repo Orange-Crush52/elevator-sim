@@ -11,10 +11,13 @@ class AntColonyMTSP {
         this.tau = tau; // Bias towards unexplored paths
         this.startingPoints = startingPoints; // Predetermined starting points for each salesman
         this.globalVisited = new Set(); // Global tracking of visited cities
+
+        this.subSets;
     }
 
     run() {
         let bestSolution = { cost: Infinity, tours: [] };
+        console.log(this.createSubSets(this.distances, this.startingPoints))
         for (let iteration = 0; iteration < this.nIterations; iteration++) {
             this.globalVisited.clear(); // Reset globalVisited at the start of each iteration
             for(let i=0; i<this.startingPoints.length; i++) {
@@ -55,7 +58,8 @@ class AntColonyMTSP {
         this.globalVisited.add(startCity);
 
         let currentCity = startCity;
-        while (this.globalVisited.size < this.distances.length) {
+
+        while (tour.length< this.distances.length/this.startingPoints.length ) {
             let nextCity = this.selectNextCity(currentCity, this.globalVisited);
             if (nextCity === -1) break; // No more cities to visit
             tour.push(nextCity);
@@ -63,7 +67,35 @@ class AntColonyMTSP {
             currentCity = nextCity;
         }
         return tour;
+
+
+        // while (this.globalVisited.size<= this.distances.length ) {
+        //     let nextCity = this.selectNextCity(currentCity, this.globalVisited);
+        //     if (nextCity === -1) break; // No more cities to visit
+        //     tour.push(nextCity);
+        //     this.globalVisited.add(nextCity);
+        //     currentCity = nextCity;
+        // }
+        // return tour;
     }
+    
+    createSubSets(requests ,startingPoints) {
+        let subSets = new Array(startingPoints.length);
+        for (let i = 0; i < subSets.length; i++) {
+            subSets[i] = new Set();
+        }
+        for(let i=0; i<requests.length; i++) {
+
+            let min = startingPoints.map(start => Math.abs(start-requests[i].indexOf(0)));
+            min = min.reduce((r, v, i, a) => v > a[r] ? r : i, -1)
+            subSets[min].add(requests[i].indexOf(0))
+        }
+
+        this.subSets = subSets;
+        return this.subSets;
+    }
+
+
 
     selectNextCity(currentCity, globalVisited) {
         let probabilities = [];
@@ -142,6 +174,6 @@ let distances = [[0, 10, 15, 20, 25, 30, 35, 40, 45, 50], //distance of city 0 t
                 [40, 30, 25, 20, 15, 10, 5, 0, 5, 10],//distance of city 7 to all other cities
                 [45, 35, 30, 25, 20, 15, 10, 5, 0, 5],//distance of city 8 to all other cities
                 [50, 40, 35, 30, 25, 20, 15, 10, 5, 0]]; // Replace with your actual distances matrix
-let startingPoints = [0, 2, 4, 6, 8]; // Example starting points for each salesman
-let aco = new AntColonyMTSP(distances, 5, 2, 100, 0.5, startingPoints, 1, 2, 0.1);
+let startingPoints = [0, 2, 4, 6]; // Example starting points for each salesman
+let aco = new AntColonyMTSP(distances, startingPoints.length, 2, 100, 0.5, startingPoints, 1, 2, 0.1);
 aco.run();
