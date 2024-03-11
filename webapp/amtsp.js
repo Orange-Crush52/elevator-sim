@@ -59,8 +59,8 @@ class AntColonyMTSP {
 
         let currentCity = startCity;
 
-        while (tour.length< this.distances.length/this.startingPoints.length ) {
-            let nextCity = this.selectNextCity(currentCity, this.globalVisited);
+        while (tour.length< this.subSets[antIndex].size) {
+            let nextCity = this.selectNextCity(currentCity, this.globalVisited, antIndex);
             if (nextCity === -1) break; // No more cities to visit
             tour.push(nextCity);
             this.globalVisited.add(nextCity);
@@ -68,15 +68,6 @@ class AntColonyMTSP {
         }
         return tour;
 
-
-        // while (this.globalVisited.size<= this.distances.length ) {
-        //     let nextCity = this.selectNextCity(currentCity, this.globalVisited);
-        //     if (nextCity === -1) break; // No more cities to visit
-        //     tour.push(nextCity);
-        //     this.globalVisited.add(nextCity);
-        //     currentCity = nextCity;
-        // }
-        // return tour;
     }
     
     createSubSets(requests ,startingPoints) {
@@ -97,12 +88,12 @@ class AntColonyMTSP {
 
 
 
-    selectNextCity(currentCity, globalVisited) {
+    selectNextCity(currentCity, globalVisited, antIndex) {
         let probabilities = [];
         let denominator = 0;
     
         for (let i = 0; i < this.distances.length; i++) {
-            if (!globalVisited.has(i)) {
+            if (!globalVisited.has(i) && this.subSets[antIndex].has(i)) {
                 let pheromoneLevel = Math.pow(this.pheromones[currentCity][i], this.alpha);
                 let heuristicValue = Math.pow(1 / (this.distances[currentCity][i] + this.tau), this.beta);
                 let probability = pheromoneLevel * heuristicValue;
