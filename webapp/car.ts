@@ -215,7 +215,7 @@ class Car {
             }
         }
         else if(this.settings.controlMode === 2) {
-            
+
         }
         
     }

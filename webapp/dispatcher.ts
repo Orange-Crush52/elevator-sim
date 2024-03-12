@@ -9,7 +9,8 @@ class Dispatcher {
     private numActiveCarsInCache: number;
     private cachedActiveCars: any[];
 
-    // private brain: any;
+    private brain: any;
+    private pastRequests;
 
     constructor(p, settings, cars, stats) {
         this.p = p;
@@ -20,6 +21,8 @@ class Dispatcher {
         // this.brain = brain;
         this.carCallQueue = [];
         this.riders = [];
+
+        this.brain = new Brain(this.p, this.settings, this.settings.numCars, 2, 100, 0.5);
     }
 
     requestCar(floor, goingUp) {
@@ -54,13 +57,24 @@ class Dispatcher {
             }
         }
         else if(this.settings.controlMode === 2) {
-            const requests = this.carCallQueue;
-            if(requests) {
+            const requests = [...this.carCallQueue];
+
+            if (JSON.stringify(requests) === JSON.stringify(this.pastRequests)) {
+                return;
+            }
+
+            this.pastRequests = requests;
+            let starting = this.cars.map((car)=>car.y/60)
+            if(requests.length>0) {
                 let floors =[]
                 for(let i=0; i<requests.length; i++) {
                     floors.push(requests[i].floor)
                 }
+                // console.log(floors)
+                
+                console.log("Best Solution:", this.brain.run(floors, starting))
             }
+            
             
 
         }
